@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <RootNamespace></RootNamespace>
+    <AssemblyName>WTorricos.Either.Build</AssemblyName>
+    <LangVersion>preview</LangVersion>
+    <NoWarn>CS0649;CS0169,CA1050,CA2211,CA1822</NoWarn>
+    <NukeRootDirectory>..</NukeRootDirectory>
+    <NukeScriptDirectory>..</NukeScriptDirectory>
+    <NukeTelemetryVersion>1</NukeTelemetryVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nuke.Common" />
+    <PackageReference Include="ReportGenerator" />
+  </ItemGroup>
+  
+  <!-- Custom links to root repository files -->
+  <ItemGroup Condition="'$(NukeRootDirectory)' != ''">
+    <None Include="$(NukeRootDirectory)\.github\*.md" LinkBase="ai" />
+    <None Include="$(NukeRootDirectory)\.github\workflows\*.yml" LinkBase="git" />
+    <None Include="$(NukeRootDirectory)\.github\*.yml" LinkBase="git" />
+    <None Include="$(NukeRootDirectory)\.gitattributes" LinkBase="git" />
+    <None Include="$(NukeRootDirectory)\.gitignore" LinkBase="git" />
+    <None Include="$(NukeRootDirectory)\.pre-commit-config.yaml" LinkBase="git" />
+
+    <None Include="$(NukeRootDirectory)\**\.editorconfig" LinkBase="config" />
+    <None Include="$(NukeRootDirectory)\.config\*.json" LinkBase="config" />
+
+    <None Include="$(NukeRootDirectory)\Directory.Packages.props" LinkBase="Directory.Build" />
+
+    <None Include="$(NukeRootDirectory)\README.md" />
+    <None Include="$(NukeRootDirectory)\docker-compose.yml" />
+  </ItemGroup>
+  
+</Project>

@@ -1,0 +1,89 @@
+# WTorricos.Either
+
+Results is a .NET library for expressive, type-safe error handling with `IEither<T>`, `Ok<T>`, and `Failure`.
+
+## Highlights
+
+- `IEither<T>` union with `Ok<T>` and `Failure`
+- Rich failure context: `ErrorCode`, `Severity`, `TraceId`, `StackTrace`, `InnerError`, `Metadata`
+- Fluent helpers: `Map`, `FlatMap`, `Flatten`, `MapFailure`, `Inspect`, `Filter`, `Void`
+- Result extraction helpers: `GetValueOrThrow`
+- Async helpers: `MapAsync`, `FlatMapAsync`, `MatchAsync`, `ActionAsync`
+- LINQ query syntax support through `Select`, `SelectMany`, and `Where`
+
+Install it from [NuGet](https://www.nuget.org/packages/WTorricos.Either).
+
+## Getting started
+
+```csharp
+using WTorricos.Either;
+using System.Globalization;
+
+IEither<int> result = new Ok<int>(42);
+
+string text = result switch
+{
+    Ok<int> ok => ok.Value.ToString(CultureInfo.InvariantCulture),
+    Failure failure => failure.GetDisplayMessage()
+};
+```
+
+```csharp
+Failure failure = new(
+    ErrorCode: "NOT_FOUND",
+    Message: "User not found",
+    Level: Severity.Warning,
+    Timestamp: DateTime.UtcNow,
+    Details: [new Detail("USER_ID", "The requested user does not exist")]
+);
+
+IEither<int> result = failure;
+```
+
+## Composition
+
+```csharp
+IEither<string> email = GetUser(id)
+    .Map(user => user.Email)
+    .FlatMap(email => ValidateEmail(email));
+```
+
+```csharp
+IEither<int> total =
+    from first in GetFirstValue()
+    from second in GetSecondValue(first)
+    where second > 0
+    select first + second;
+```
+
+## Custom failures
+
+Custom failures are plain records that inherit from `Failure`.
+
+```csharp
+public record NotFoundFailure(string Resource, string? TraceId = null)
+    : Failure(
+        ErrorCode: $"{Resource.ToUpperInvariant()}_NOT_FOUND",
+        Message: $"{Resource} not found",
+        Level: Severity.Warning,
+        Timestamp: DateTime.UtcNow,
+        Details: [],
+        TraceId: TraceId);
+```
+
+## Documentation
+
+- [Migration guide](./MIGRATION.md)
+- [Breaking changes](./BREAKING_CHANGES.md)
+- [Design notes](./DESIGN.md)
+- [Changelog](./CHANGELOG.md)
+
+## Contributing
+
+```powershell
+dotnet build WTorricos.Either.slnx
+dotnet test tests\WTorricos.Either.UnitTests\WTorricos.Either.UnitTests.csproj
+./build.cmd CiBuildAndTest
+```
+
+The library targets `net11.0` preview tooling in this repository and packs as `WTorricos.Either`.

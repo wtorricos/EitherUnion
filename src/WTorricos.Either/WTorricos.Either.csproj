@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- v3 targets net11.0 for union types and modern async patterns -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <RootNamespace>WTorricos.Either</RootNamespace>
+    <AssemblyName>WTorricos.Either</AssemblyName>
+
+    <!-- We want to include the build output because many of the utilities of the library are part of the assembly -->
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+
+    <!-- Automatically generate the package on build -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Nuget package properties -->
+    <PackageId>WTorricos.Either</PackageId>
+    <PackageProjectUrl>https://github.com/wtorricos/Either</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/wtorricos/Either</RepositoryUrl>
+    <Authors>Walter Torricos; wtorricos</Authors>
+    <Company>com.torricostec</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Library using C# union types for expressive, type-safe error handling with enhanced context.</Description>
+    <Summary>v3: Union types, enhanced errors, modern async patterns. Clean rewrite from v2 for .NET 9+.</Summary>
+    <PackageTags>result pattern aspnetcore .net union-types</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <!-- TODO: Add <PackageIcon>icon.png</PackageIcon>-->
+
+    <!-- Properties that need to be updated on every release -->
+    <Version>3.0.0-preview.1</Version>
+    <PackageReleaseNotes>Version 3: Union types, enhanced error context, modern async patterns (ValueTask, CancellationToken)</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Readme.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
