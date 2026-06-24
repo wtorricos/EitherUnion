@@ -207,6 +207,44 @@ public class IEitherCoreTest
         Assert.Equal("op-uuid", failure.Metadata["operationId"]);
     }
 
+    [Fact(DisplayName = "Failure metadata is immutable copy")]
+    public void FailureMetadataIsImmutableCopy()
+    {
+        Dictionary<string, object> metadata = new Dictionary<string, object>
+        {
+            { "userId", 12345 }
+        };
+
+        Failure failure = new Failure(
+            "OP_FAILED",
+            "Operation failed",
+            Severity.Error,
+            DateTime.UtcNow,
+            [],
+            Metadata: metadata);
+
+        metadata["userId"] = 67890;
+
+        Assert.Equal(12345, failure.Metadata!["userId"]);
+        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, object>)failure.Metadata).Add("operationId", "op-uuid"));
+    }
+
+    [Fact(DisplayName = "Failure supports DateTimeOffset timestamp")]
+    public void FailureSupportsDateTimeOffsetTimestamp()
+    {
+        DateTimeOffset offsetTimestamp = new DateTimeOffset(2026, 6, 24, 17, 0, 0, TimeSpan.Zero);
+
+        Failure failure = new Failure(
+            "OFFSET",
+            "Offset timestamp",
+            Severity.Info,
+            offsetTimestamp,
+            []);
+
+        Assert.Equal(offsetTimestamp.UtcDateTime, failure.Timestamp);
+        Assert.Equal(offsetTimestamp, failure.TimestampOffset);
+    }
+
     [Fact(DisplayName = "Failure with TraceId for distributed tracing")]
     public void FailureWithTraceIdForDistributedTracing()
     {

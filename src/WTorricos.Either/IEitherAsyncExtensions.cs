@@ -7,6 +7,7 @@ public static class IEitherAsyncExtensions
         Func<TIn, ValueTask<TOut>> map,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(map);
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -21,6 +22,7 @@ public static class IEitherAsyncExtensions
         Func<TIn, ValueTask<IEither<TOut>>> bind,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(bind);
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -36,6 +38,8 @@ public static class IEitherAsyncExtensions
         Func<Failure, ValueTask<TResult>> onFailure,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -51,6 +55,7 @@ public static class IEitherAsyncExtensions
         Func<Failure, ValueTask>? onFailure = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (either is Ok<T> ok)

@@ -202,4 +202,26 @@ public class IEitherAsyncExtensionsTest
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await either.ActionAsync(value => ValueTask.CompletedTask, cancellationToken: cts.Token));
     }
+
+    [Fact(DisplayName = "MapAsync throws for null map function")]
+    public async Task MapAsyncThrowsForNullMapFunction()
+    {
+        IEither<int> either = new Ok<int>(5);
+        Func<int, ValueTask<int>>? map = null;
+
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            async () => await either.MapAsync(map!));
+    }
+
+    [Fact(DisplayName = "MatchAsync throws for null failure callback")]
+    public async Task MatchAsyncThrowsForNullFailureCallback()
+    {
+        IEither<int> either = new Ok<int>(5);
+        Func<Failure, ValueTask<string>>? onFailure = null;
+
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            async () => await either.MatchAsync(
+                value => ValueTask.FromResult($"ok:{value}"),
+                onFailure!));
+    }
 }

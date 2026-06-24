@@ -273,6 +273,105 @@ public class IEitherExtensionsTest
         }
     }
 
+    [Fact(DisplayName = "FromNullable converts nullable struct to Ok")]
+    public void FromNullableConvertsNullableStructToOk()
+    {
+        int? value = 10;
+        Failure whenNull = new("NULL", "Was null", Severity.Error, DateTime.UtcNow, []);
+
+        IEither<int> result = IEitherExtensions.FromNullable(value, whenNull);
+
+        switch (result)
+        {
+            case Ok<int> ok:
+                Assert.Equal(10, ok.Value);
+                break;
+            default:
+                Assert.Fail("Expected Ok<int>");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "FromNullable converts null nullable struct to Failure")]
+    public void FromNullableConvertsNullNullableStructToFailure()
+    {
+        int? value = null;
+        Failure whenNull = new("NULL", "Was null", Severity.Error, DateTime.UtcNow, []);
+
+        IEither<int> result = IEitherExtensions.FromNullable(value, whenNull);
+
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL", failure.ErrorCode);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "Match folds success and failure")]
+    public void MatchFoldsSuccessAndFailure()
+    {
+        IEither<int> okEither = new Ok<int>(7);
+        IEither<int> failureEither = new Failure("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
+
+        string okText = okEither.Match(
+            onSuccess: value => $"ok:{value}",
+            onFailure: failure => $"error:{failure.ErrorCode}");
+
+        string failureText = failureEither.Match(
+            onSuccess: value => $"ok:{value}",
+            onFailure: failure => $"error:{failure.ErrorCode}");
+
+        Assert.Equal("ok:7", okText);
+        Assert.Equal("error:ERR", failureText);
+    }
+
+    [Fact(DisplayName = "Tap executes success callback only")]
+    public void TapExecutesSuccessCallbackOnly()
+    {
+        IEither<int> either = new Ok<int>(4);
+        int observed = 0;
+
+        IEither<int> result = either.Tap(value => observed = value);
+
+        Assert.Equal(4, observed);
+        Assert.Equal(either, result);
+    }
+
+    [Fact(DisplayName = "OnFailure executes failure callback only")]
+    public void OnFailureExecutesFailureCallbackOnly()
+    {
+        IEither<int> either = new Failure("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
+        string? observed = null;
+
+        IEither<int> result = either.OnFailure(failure => observed = failure.ErrorCode);
+
+        Assert.Equal("ERR", observed);
+        Assert.Equal(either, result);
+    }
+
+    [Fact(DisplayName = "Map throws for null map function")]
+    public void MapThrowsForNullMapFunction()
+    {
+        IEither<int> either = new Ok<int>(1);
+        Func<int, int>? map = null;
+
+        Assert.Throws<ArgumentNullException>(() => either.Map(map!));
+    }
+
+    [Fact(DisplayName = "Filter throws for null predicate")]
+    public void FilterThrowsForNullPredicate()
+    {
+        IEither<int> either = new Ok<int>(1);
+        Failure filterFailure = new("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
+        Func<int, bool>? predicate = null;
+
+        Assert.Throws<ArgumentNullException>(() => either.Filter(predicate!, filterFailure));
+    }
+
     [Fact(DisplayName = "Void converts Ok to Unit")]
     public void VoidConvertsOkToUnit()
     {

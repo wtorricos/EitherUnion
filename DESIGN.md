@@ -1,21 +1,21 @@
-# v3 Design: Union Types & Rich Error Context
+# v1 Design: Union Types & Rich Error Context
 
-This document explains the design philosophy and architecture of Results v3.
+This document explains the design philosophy and architecture of WTorricos.Either v1.
 
 ## Philosophy
 
-Results v3 embraces **C# 13 union types** as first-class constructs for type-safe, expressive error handling. Instead of interfaces and abstract types, v3 uses discriminated unions to represent the two states of an operation: success (`Ok`) or failure (`Failure`).
+WTorricos.Either v1 embraces **C# 13 union types** as first-class constructs for type-safe, expressive error handling. The library uses discriminated unions to represent the two states of an operation: success (`Ok`) or failure (`Failure`).
 
-### Why Union Types?
+### Why union types?
 
 1. **Type Safety** — The compiler ensures all cases are handled
-2. **Performance** — Unions are stack-allocated, no boxing/interface indirection
+2. **Performance** — Avoids interface-based dispatch and keeps data model simple
 3. **Clarity** — Code reads naturally: "Either Ok or Failure"
 4. **Simplicity** — No generator boilerplate, just records and pattern matching
 
 ## Core Types
 
-### IEither<T> — The Union
+### IEither<T> — The union
 
 ```csharp
 public union IEither<T>(Failure, Ok<T>);
@@ -33,7 +33,7 @@ public record Ok<T>(T Value);
 
 Simple, immutable success type holding the operation result.
 
-### Failure — Rich Error Context
+### Failure — Rich error context
 
 ```csharp
 public record Failure(
@@ -45,7 +45,7 @@ public record Failure(
     string? TraceId = null,     // Distributed tracing ID
     string? StackTrace = null,  // Exception details
     Failure? InnerError = null, // Error chaining
-    Dictionary<string, object>? Metadata = null  // Custom context
+    IReadOnlyDictionary<string, object>? Metadata = null  // Custom context
 );
 ```
 
@@ -54,12 +54,13 @@ public record Failure(
 - **ErrorCode** — First-class error identifier for categorization
 - **Severity** — Structured severity levels (not just messages)
 - **Timestamp** — Automatic error timestamping for diagnostics
+- **DateTimeOffset support** — Can be constructed with `DateTimeOffset` for timezone-safe timestamps
 - **TraceId** — Integrates with distributed tracing (OpenTelemetry, etc.)
 - **StackTrace** — Captures exception context
 - **InnerError** — Error chaining for root cause analysis
 - **Metadata** — Custom fields (userId, operationId, retry count, etc.)
 
-### Detail — Error Details
+### Detail — Error details
 
 ```csharp
 public record Detail(string Code, string Description);
@@ -67,7 +68,7 @@ public record Detail(string Code, string Description);
 
 Structured error details (e.g., validation field + reason).
 
-### Severity — Error Levels
+### Severity — Error levels
 
 ```csharp
 public enum Severity
@@ -81,15 +82,15 @@ public enum Severity
 
 Allows filtering/routing errors by severity in production systems.
 
-## Usage Patterns
+## Usage patterns
 
-### Creating Success
+### Creating success
 
 ```csharp
 IEither<int> result = new Ok<int>(42);
 ```
 
-### Creating Errors
+### Creating errors
 
 **Simple error:**
 ```csharp
@@ -141,7 +142,7 @@ var failure = new Failure(
 );
 ```
 
-### Pattern Matching
+### Pattern matching
 
 ```csharp
 IEither<int> result = GetUser(id);
@@ -153,7 +154,7 @@ var outcome = result switch
 };
 ```
 
-### Fluent Composition
+### Fluent composition
 
 ```csharp
 IEither<User> user = GetUser(id);
@@ -161,7 +162,7 @@ IEither<string> email = user.Map(u => u.Email);
 IEither<bool> verified = email.FlatMap(e => CheckEmailVerified(e));
 ```
 
-### Error Handling
+### Error handling
 
 ```csharp
 _ = result switch
@@ -171,7 +172,7 @@ _ = result switch
 };
 ```
 
-### Chained Errors
+### Chained errors
 
 ```csharp
 try {
@@ -192,7 +193,7 @@ catch (Exception ex)
 }
 ```
 
-### Distributed Tracing Integration
+### Distributed tracing integration
 
 ```csharp
 var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
@@ -212,9 +213,9 @@ var failure = new Failure(
 );
 ```
 
-## Custom Error Types
+## Custom error types
 
-Since v3 removes source generators, custom errors are simple record inheritance:
+Custom errors are simple record inheritance:
 
 ```csharp
 public record NotFoundError(
@@ -239,9 +240,9 @@ if (user == null)
     return new NotFoundError("User", traceId);
 ```
 
-## Async Patterns
+## Async patterns
 
-v3 uses modern async patterns with **ValueTask** and **CancellationToken**:
+v1 uses modern async patterns with **ValueTask** and **CancellationToken**:
 
 ```csharp
 // Async method with cancellation support
@@ -262,23 +263,23 @@ var result = await either
 - **Cancellation support** throughout the chain
 - **No overload explosion** (sync and async are separate methods)
 
-## API Surface
+## API surface
 
-### Core Methods
+### Core methods
 
 - `Map<TOut>(Func<T, TOut>)` — Transform success value
 - `FlatMap<TOut>(Func<T, IEither<TOut>>)` — Monadic bind
 - `Flatten()` — Unwrap nested Either
 - `GetValueOrThrow()` — Extract or throw
 
-### Async Methods (with Async suffix)
+### Async methods (with Async suffix)
 
 - `MapAsync(Func<T, ValueTask<TOut>>, CancellationToken)` — Async transform
 - `FlatMapAsync(Func<T, ValueTask<IEither<TOut>>>, CancellationToken)` — Async bind
 - `ActionAsync(Func<T, ValueTask>, ..., CancellationToken)` — Async execute
 - `MatchAsync(Func<T, ValueTask<TResult>>, ..., CancellationToken)` — Async fold
 
-### LINQ Support
+### LINQ support
 
 ```csharp
 IEither<int> result = from x in GetFirst()
@@ -292,31 +293,17 @@ Supports:
 - `SelectMany` (via `FlatMap`)
 - `Where` (filtering with error on false)
 
-## Error Propagation
+## Error propagation
 
 - **Short-circuit on first error** — Chains stop immediately on Failure
 - **Error context preserved** — Message, code, severity all retained
 - **Chainable errors** — InnerError field for nested exception handling
 
-## Performance Considerations
+## Performance considerations
 
-- **Union types are stack-allocated** — No heap allocation like interface
-- **ValueTask avoids allocation** — Zero alloc when sync path completes
-- **Pattern matching is optimized** — Compiler generates efficient dispatch
-- **No reflection** — All types known at compile time (unlike v2 generator)
-
-## Comparison: v2 vs v3
-
-| Aspect | v2 | v3 |
-|--------|----|----|
-| Core Type | Interface (IMaybe) | Union (IEither) |
-| Success | Some<T> | Ok<T> |
-| Error | INone (interface) | Failure (record) |
-| Error Code Generation | Source generator | Manual record |
-| Async Pattern | Multiple overloads | ValueTask + suffix |
-| Error Context | Message + Details | Message + Code + Severity + TraceId + Metadata |
-| Error Chaining | Not supported | InnerError field |
-| Performance | Good | Better (unions are stack-allocated) |
+- **Union modeling** keeps success/error handling explicit
+- **ValueTask** helps reduce async allocations in synchronous completion paths
+- **Pattern matching** keeps branching explicit and compiler-checked
 
 ## Testing
 
@@ -328,20 +315,20 @@ Core types are tested in `IEitherCoreTest.cs`:
 - Severity levels
 - Timestamp handling
 
-Extension methods tested in Phase 2:
+Extension methods are tested in:
 - Fluent API chains
 - Async methods with cancellation
 - LINQ query expressions
 
-## Future Enhancements
+## Future enhancements
 
-Potential additions in v3 maintenance releases:
+Potential additions in v1 maintenance releases:
 
 - **Error retry policies** — Metadata-driven retry strategies
 - **Error aggregation** — Collecting multiple errors
-- **Result.All()** — Combining multiple Results
+- **Either.All()** — Combining multiple `IEither<T>` values
 - **Async iterables** — IAsyncEnumerable<IEither<T>>
 
 ---
 
-**For migration from v2, see [BREAKING_CHANGES.md](./BREAKING_CHANGES.md).**
+**This is the first release line (v1), so no migration path is required yet.**

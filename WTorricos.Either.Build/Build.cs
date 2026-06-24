@@ -107,7 +107,7 @@ sealed class Build : NukeBuild
         .Executes(
             () =>
             {
-                // Sample command: dotnet ReportGenerator -targetdir:C:\...\Results\coverage -reporttypes:Html;Cobertura -reports:C:\...\Results\**\coverage.cobertura.xml
+                // Sample command: dotnet ReportGenerator -targetdir:C:\...\WTorricos.EitherUnion\coverage -reporttypes:Html;Cobertura -reports:C:\...\**\coverage.cobertura.xml
                 _ = ReportGeneratorTasks.ReportGenerator(
                     s => s
                         .SetTargetDirectory(CoverageDirectory)
@@ -139,7 +139,7 @@ sealed class Build : NukeBuild
             });
 
     // Run with: dotnet nuke cibuildandtest
-    // You will find the nuget package under WTorricos.Either/bin/Release/WTorricos.Either.x.x.x.nupkg
+    // You will find the NuGet package under WTorricos.Either/bin/Release/WTorricos.EitherUnion.x.x.x.nupkg
     Target CiBuildAndTest => _ => _
         .DependsOn(TestCoverage)
         .Executes(() => DotNetTasks.DotNetBuild(

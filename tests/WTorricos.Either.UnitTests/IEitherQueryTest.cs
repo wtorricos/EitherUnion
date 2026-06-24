@@ -246,4 +246,13 @@ public class IEitherQueryTest
                 break;
         }
     }
+
+    [Fact(DisplayName = "Where throws when predicate is null")]
+    public void WhereThrowsWhenPredicateIsNull()
+    {
+        IEither<int> either = new Ok<int>(15);
+        Func<int, bool>? predicate = null;
+
+        Assert.Throws<ArgumentNullException>(() => either.Where(predicate!));
+    }
 }
