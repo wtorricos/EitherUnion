@@ -86,6 +86,15 @@ public record NotFoundFailure(string Resource, string? TraceId = null)
 
 - [Design notes](./DESIGN.md)
 - [Changelog](./CHANGELOG.md)
+- [Sample API](./samples/Either.SampleApi/Readme.md)
+
+## Sample API (vertical slices)
+
+`samples/Either.SampleApi` demonstrates a medium-complexity minimal API with three endpoints and practical `IEither<T>` flows:
+
+- `POST /orders` uses `FlatMap` + `FlatMapAsync`
+- `GET /orders/{id}` uses `FromNullable` + `MapFailure`
+- `POST /payments/refund` uses `Filter` + `MapAsync` and returns HTTP `499` on cancellation
 
 ## Contributing
 

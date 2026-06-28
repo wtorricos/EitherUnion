@@ -12,25 +12,25 @@ public record Failure(
     IReadOnlyDictionary<string, object>? Metadata = null)
 {
     public Failure(
-        string ErrorCode,
-        string Message,
-        Severity Level,
-        DateTimeOffset Timestamp,
-        IReadOnlyList<Detail> Details,
-        string? TraceId = null,
-        string? StackTrace = null,
-        Failure? InnerError = null,
-        IReadOnlyDictionary<string, object>? Metadata = null)
+        string errorCode,
+        string message,
+        Severity level,
+        DateTimeOffset timestamp,
+        IReadOnlyList<Detail> details,
+        string? traceId = null,
+        string? stackTrace = null,
+        Failure? innerError = null,
+        IReadOnlyDictionary<string, object>? metadata = null)
         : this(
-            ErrorCode,
-            Message,
-            Level,
-            Timestamp.UtcDateTime,
-            Details,
-            TraceId,
-            StackTrace,
-            InnerError,
-            Metadata)
+            errorCode,
+            message,
+            level,
+            timestamp.UtcDateTime,
+            details,
+            traceId,
+            stackTrace,
+            innerError,
+            metadata)
     {
     }
 
@@ -40,25 +40,25 @@ public record Failure(
             : new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(new Dictionary<string, object>(Metadata));
 
     public DateTimeOffset TimestampOffset =>
-        new DateTimeOffset(DateTime.SpecifyKind(Timestamp, DateTimeKind.Utc));
+        new(DateTime.SpecifyKind(Timestamp, DateTimeKind.Utc));
 
     public string GetDisplayMessage()
     {
-        System.Text.StringBuilder sb = new System.Text.StringBuilder(Message);
+        System.Text.StringBuilder sb = new(Message);
 
         if (Details.Count > 0)
         {
             foreach (Detail detail in Details)
             {
-                sb.Append(System.Environment.NewLine);
-                sb.Append(detail.Code).Append(": ").Append(detail.Description);
+                _ = sb.Append(Environment.NewLine);
+                _ = sb.Append(detail.Code).Append(": ").Append(detail.Description);
             }
         }
 
         if (InnerError is not null)
         {
-            sb.Append(System.Environment.NewLine);
-            sb.Append("Inner Error: ").Append(InnerError.GetDisplayMessage());
+            _ = sb.Append(Environment.NewLine);
+            _ = sb.Append("Inner Error: ").Append(InnerError.GetDisplayMessage());
         }
 
         return sb.ToString();

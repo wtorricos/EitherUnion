@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Either.SampleApi/Either.SampleApi.csproj" />
+  </Folder>
   <Folder Name="/SolutionItems/">
     <File Path=".config/dotnet-tools.json" />
     <File Path=".editorconfig" />
@@ -14,6 +17,7 @@
     <Project Path="src/WTorricos.Either/WTorricos.Either.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Either.SampleApi.Tests/Either.SampleApi.Tests.csproj" />
     <Project Path="tests/WTorricos.Either.UnitTests/WTorricos.Either.UnitTests.csproj" />
   </Folder>
   <Project Path="WTorricos.Either.Build/WTorricos.Either.Build.csproj">

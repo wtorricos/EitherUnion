@@ -25,7 +25,6 @@
       "type": "string",
       "enum": [
         "CiBuildAndTest",
-        "Clean",
         "CleanGenerated",
         "Compile",
         "Restore",
@@ -114,7 +113,7 @@
         },
         "CoverageThreshold": {
           "type": "number",
-          "description": "Coverage test threshold, defaults to 85%",
+          "description": "Coverage test threshold, defaults to 100%",
           "format": "double"
         },
         "Solution": {

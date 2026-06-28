@@ -6,7 +6,6 @@ using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
-using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Serilog;
@@ -50,30 +49,22 @@ sealed class Build : NukeBuild
     static Build() =>
         Environment.SetEnvironmentVariable(variable: "NO_LOGO", value: "true");
 
-    [Parameter(description: "Coverage test threshold, defaults to 85%")]
-    double CoverageThreshold { get; set; } = 0.95;
+    [Parameter(description: "Coverage test threshold, defaults to 100%")]
+    double CoverageThreshold { get; set; } = 1.00;
 
     [Solution(GenerateProjects = true)]
-    Solution Solution { get; set; } = null!;
+    Solution Solution { get; set; } = null;
 
     static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
 
     Target CleanGenerated => _ => _
-        .Executes(() =>
-        {
-            RootDirectory
+        .Executes(() => RootDirectory
                 .GlobDirectories(
                     "**/TestResults",
                     "**/coverage",
                     "**/BenchmarkDotNet.Artifacts")
                 .ToList()
-                .ForEach(dir => dir.DeleteDirectory());
-        });
-
-    Target Clean => _ => _
-        .DependsOn(CleanGenerated)
-        .Before(Restore)
-        .Executes(() => DotNetTasks.DotNetClean());
+                .ForEach(dir => dir.DeleteDirectory()));
 
     Target Restore => _ => _
         .Executes(() => DotNetTasks.DotNetRestore());
@@ -88,17 +79,15 @@ sealed class Build : NukeBuild
         .ProceedAfterFailure()
         .Executes(
             () =>
-            {
                 // Sample command: dotnet test --configuration Debug --collect "XPlat Code Coverage" --no-build --no-restore /property:CollectCoverage=True
-                return DotNetTasks.DotNetTest(
+                DotNetTasks.DotNetTest(
                     config => config
                         .EnableNoBuild()
                         .EnableNoRestore()
                         .SetProjectFile(Solution)
                         .SetConfiguration(configuration)
                         .SetDataCollector("XPlat Code Coverage")
-                        .AddProperty("ExcludeByAttribute", "ExcludeFromCodeCoverageAttribute"));
-            });
+                        .AddProperty("ExcludeByAttribute", "ExcludeFromCodeCoverageAttribute")));
 
     Target TestCoverage => target => target
         .DependsOn(Test)

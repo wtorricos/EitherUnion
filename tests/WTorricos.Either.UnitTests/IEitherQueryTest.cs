@@ -253,6 +253,6 @@ public class IEitherQueryTest
         IEither<int> either = new Ok<int>(15);
         Func<int, bool>? predicate = null;
 
-        Assert.Throws<ArgumentNullException>(() => either.Where(predicate!));
+        _ = Assert.Throws<ArgumentNullException>(() => either.Where(predicate!));
     }
 }

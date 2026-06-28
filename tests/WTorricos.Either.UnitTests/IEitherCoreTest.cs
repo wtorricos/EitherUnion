@@ -6,7 +6,7 @@ public class IEitherCoreTest
     public void OkCreationSuccess()
     {
         const int expectedValue = 42;
-        Ok<int> ok = new Ok<int>(expectedValue);
+        Ok<int> ok = new(expectedValue);
 
         Assert.Equal(expectedValue, ok.Value);
     }
@@ -14,9 +14,9 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Ok<string> with various types")]
     public void OkWorksWithAnyType()
     {
-        Ok<string> okString = new Ok<string>("hello");
-        Ok<List<int>> okList = new Ok<List<int>>(new List<int> { 1, 2, 3 });
-        Ok<object> okClass = new Ok<object>(new { name = "test" });
+        Ok<string> okString = new("hello");
+        Ok<List<int>> okList = new([1, 2, 3]);
+        Ok<object> okClass = new(new { name = "test" });
 
         Assert.Equal("hello", okString.Value);
         Assert.Equal(3, okList.Value.Count);
@@ -30,9 +30,9 @@ public class IEitherCoreTest
         const string message = "Something went wrong";
         Severity severity = Severity.Error;
         DateTime timestamp = DateTime.UtcNow;
-        List<Detail> details = new List<Detail>();
+        List<Detail> details = [];
 
-        Failure failure = new Failure(errorCode, message, severity, timestamp, details);
+        Failure failure = new(errorCode, message, severity, timestamp, details);
 
         Assert.Equal(errorCode, failure.ErrorCode);
         Assert.Equal(message, failure.Message);
@@ -44,7 +44,7 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure with optional fields")]
     public void FailureWithOptionalFields()
     {
-        Failure failure = new Failure(
+        Failure failure = new(
             ErrorCode: "NOT_FOUND",
             Message: "Resource not found",
             Level: Severity.Warning,
@@ -59,7 +59,7 @@ public class IEitherCoreTest
         Assert.Equal("NOT_FOUND", failure.ErrorCode);
         Assert.Equal("trace-123", failure.TraceId);
         Assert.Equal("at Program.Main()", failure.StackTrace);
-        Assert.Single(failure.Details);
+        _ = Assert.Single(failure.Details);
         Assert.True(failure.Metadata?.ContainsKey("userId"));
     }
 
@@ -68,10 +68,11 @@ public class IEitherCoreTest
     {
         IEither<int> either = new Ok<int>(42);
 
+
         int result = either switch
         {
             Ok<int> ok => ok.Value * 2,
-            Failure err => 0
+            Failure => 0
         };
 
         Assert.Equal(84, result);
@@ -80,13 +81,14 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Union pattern matching on Failure")]
     public void UnionPatternMatchingFailure()
     {
-        Failure failure = new Failure("ERR_001", "Test error", Severity.Error, DateTime.UtcNow, []);
+        Failure failure = new("ERR_001", "Test error", Severity.Error, DateTime.UtcNow, []);
         IEither<int> either = failure;
+
 
         int result = either switch
         {
             Ok<int> ok => ok.Value,
-            Failure err => -1
+            Failure => -1
         };
 
         Assert.Equal(-1, result);
@@ -95,12 +97,12 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure.GetDisplayMessage with no details")]
     public void FailureDisplayMessageNoDetails()
     {
-        Failure failure = new Failure(
+        Failure failure = new(
             "ERR_001",
             "Main error message",
             Severity.Error,
             DateTime.UtcNow,
-            new List<Detail>()
+            []
         );
 
         string displayMessage = failure.GetDisplayMessage();
@@ -111,13 +113,13 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure.GetDisplayMessage with details")]
     public void FailureDisplayMessageWithDetails()
     {
-        List<Detail> details = new List<Detail>
-        {
+        List<Detail> details =
+        [
             new Detail("DETAIL_1", "First detail"),
             new Detail("DETAIL_2", "Second detail")
-        };
+        ];
 
-        Failure failure = new Failure(
+        Failure failure = new(
             "ERR_001",
             "Main error",
             Severity.Error,
@@ -135,20 +137,20 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure with inner error chaining")]
     public void FailureWithInnerErrorChaining()
     {
-        Failure innerFailure = new Failure(
+        Failure innerFailure = new(
             "INNER_ERR",
             "Inner error message",
             Severity.Warning,
             DateTime.UtcNow,
-            new List<Detail>()
+            []
         );
 
-        Failure outerFailure = new Failure(
+        Failure outerFailure = new(
             "OUTER_ERR",
             "Outer error message",
             Severity.Error,
             DateTime.UtcNow,
-            new List<Detail>(),
+            [],
             InnerError: innerFailure
         );
 
@@ -159,20 +161,20 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure error chaining display message")]
     public void FailureChainedDisplayMessage()
     {
-        Failure innerFailure = new Failure(
+        Failure innerFailure = new(
             "INNER",
             "Inner error",
             Severity.Error,
             DateTime.UtcNow,
-            new List<Detail>()
+            []
         );
 
-        Failure outerFailure = new Failure(
+        Failure outerFailure = new(
             "OUTER",
             "Outer error",
             Severity.Critical,
             DateTime.UtcNow,
-            new List<Detail>(),
+            [],
             InnerError: innerFailure
         );
 
@@ -185,37 +187,37 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Failure with metadata")]
     public void FailureWithMetadata()
     {
-        Dictionary<string, object> metadata = new Dictionary<string, object>
+        Dictionary<string, object> metadata = new()
         {
             { "userId", 12345 },
             { "operationId", "op-uuid" },
             { "timestamp", DateTime.UtcNow }
         };
 
-        Failure failure = new Failure(
+        Failure failure = new(
             "OP_FAILED",
             "Operation failed",
             Severity.Error,
             DateTime.UtcNow,
-            new List<Detail>(),
+            [],
             Metadata: metadata
         );
 
         Assert.NotNull(failure.Metadata);
         Assert.Equal(3, failure.Metadata.Count);
-        Assert.Equal(12345, failure.Metadata!["userId"]);
+        Assert.Equal(12345, failure.Metadata["userId"]);
         Assert.Equal("op-uuid", failure.Metadata["operationId"]);
     }
 
     [Fact(DisplayName = "Failure metadata is immutable copy")]
     public void FailureMetadataIsImmutableCopy()
     {
-        Dictionary<string, object> metadata = new Dictionary<string, object>
+        Dictionary<string, object> metadata = new()
         {
             { "userId", 12345 }
         };
 
-        Failure failure = new Failure(
+        Failure failure = new(
             "OP_FAILED",
             "Operation failed",
             Severity.Error,
@@ -226,15 +228,15 @@ public class IEitherCoreTest
         metadata["userId"] = 67890;
 
         Assert.Equal(12345, failure.Metadata!["userId"]);
-        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, object>)failure.Metadata).Add("operationId", "op-uuid"));
+        _ = Assert.Throws<NotSupportedException>(() => ((IDictionary<string, object>)failure.Metadata).Add("operationId", "op-uuid"));
     }
 
     [Fact(DisplayName = "Failure supports DateTimeOffset timestamp")]
     public void FailureSupportsDateTimeOffsetTimestamp()
     {
-        DateTimeOffset offsetTimestamp = new DateTimeOffset(2026, 6, 24, 17, 0, 0, TimeSpan.Zero);
+        DateTimeOffset offsetTimestamp = new(2026, 6, 24, 17, 0, 0, TimeSpan.Zero);
 
-        Failure failure = new Failure(
+        Failure failure = new(
             "OFFSET",
             "Offset timestamp",
             Severity.Info,
@@ -249,12 +251,12 @@ public class IEitherCoreTest
     public void FailureWithTraceIdForDistributedTracing()
     {
         const string traceId = "0HN1GJ5V11L3D:00000001";
-        Failure failure = new Failure(
+        Failure failure = new(
             "DB_ERROR",
             "Database connection failed",
             Severity.Critical,
             DateTime.UtcNow,
-            new List<Detail>(),
+            [],
             TraceId: traceId
         );
 
@@ -269,12 +271,12 @@ public class IEitherCoreTest
             at MyApp.Controller.Handle(Request request) in /app/Controller.cs:line 15
             """;
 
-        Failure failure = new Failure(
+        Failure failure = new(
             "UNHANDLED",
             "Unhandled exception",
             Severity.Critical,
             DateTime.UtcNow,
-            new List<Detail>(),
+            [],
             StackTrace: stackTrace
         );
 
@@ -285,10 +287,10 @@ public class IEitherCoreTest
     [Fact(DisplayName = "All severity levels")]
     public void AllSeverityLevels()
     {
-        Failure infoFailure = new Failure("INFO", "Info", Severity.Info, DateTime.UtcNow, []);
-        Failure warningFailure = new Failure("WARN", "Warning", Severity.Warning, DateTime.UtcNow, []);
-        Failure errorFailure = new Failure("ERR", "Error", Severity.Error, DateTime.UtcNow, []);
-        Failure criticalFailure = new Failure("CRIT", "Critical", Severity.Critical, DateTime.UtcNow, []);
+        Failure infoFailure = new("INFO", "Info", Severity.Info, DateTime.UtcNow, []);
+        Failure warningFailure = new("WARN", "Warning", Severity.Warning, DateTime.UtcNow, []);
+        Failure errorFailure = new("ERR", "Error", Severity.Error, DateTime.UtcNow, []);
+        Failure criticalFailure = new("CRIT", "Critical", Severity.Critical, DateTime.UtcNow, []);
 
         Assert.Equal(Severity.Info, infoFailure.Level);
         Assert.Equal(Severity.Warning, warningFailure.Level);
@@ -300,7 +302,7 @@ public class IEitherCoreTest
     public void FailureTimestampCaptured()
     {
         DateTime beforeCreation = DateTime.UtcNow;
-        Failure failure = new Failure("TEST", "Test", Severity.Error, DateTime.UtcNow, []);
+        Failure failure = new("TEST", "Test", Severity.Error, DateTime.UtcNow, []);
         DateTime afterCreation = DateTime.UtcNow;
 
         Assert.True(failure.Timestamp >= beforeCreation);
@@ -310,14 +312,14 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Multiple detail codes")]
     public void MultipleDetailCodes()
     {
-        List<Detail> details = new List<Detail>
-        {
+        List<Detail> details =
+        [
             new Detail("VALIDATION_NAME", "Name is required"),
             new Detail("VALIDATION_EMAIL", "Email format is invalid"),
             new Detail("VALIDATION_AGE", "Age must be greater than 18")
-        };
+        ];
 
-        Failure failure = new Failure("VALIDATION_FAILED", "Validation failed", Severity.Warning, DateTime.UtcNow, details);
+        Failure failure = new("VALIDATION_FAILED", "Validation failed", Severity.Warning, DateTime.UtcNow, details);
 
         Assert.Equal(3, failure.Details.Count);
         Assert.Contains(failure.Details, d => d.Code == "VALIDATION_NAME");
@@ -328,26 +330,26 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Details are immutable (read-only collection)")]
     public void DetailsAreImmutable()
     {
-        List<Detail> detailList = new List<Detail> { new Detail("CODE", "Description") };
-        Failure failure = new Failure("ERR", "Error", Severity.Error, DateTime.UtcNow, detailList);
+        List<Detail> detailList = [new Detail("CODE", "Description")];
+        Failure failure = new("ERR", "Error", Severity.Error, DateTime.UtcNow, detailList);
 
-        Assert.IsType<IReadOnlyList<Detail>>(failure.Details, exactMatch: false);
+        _ = Assert.IsType<IReadOnlyList<Detail>>(failure.Details, exactMatch: false);
     }
 
     [Fact(DisplayName = "Ok and Failure can be used in collections")]
     public void OkAndFailureInCollections()
     {
-        List<object> results = new List<object>
-        {
+        List<object> results =
+        [
             new Ok<int>(1),
             new Ok<string>("hello"),
             new Failure("ERR", "Error", Severity.Error, DateTime.UtcNow, [])
-        };
+        ];
 
         Assert.Equal(3, results.Count);
-        Assert.Single(results.OfType<Ok<int>>());
-        Assert.Single(results.OfType<Ok<string>>());
-        Assert.Single(results.OfType<Failure>());
+        _ = Assert.Single(results.OfType<Ok<int>>());
+        _ = Assert.Single(results.OfType<Ok<string>>());
+        _ = Assert.Single(results.OfType<Failure>());
     }
 
     [Fact(DisplayName = "Unit.Instance is singleton")]
@@ -386,7 +388,7 @@ public class IEitherCoreTest
     [Fact(DisplayName = "Unit can be used in Failure")]
     public void UnitCanBeUsedWithFailure()
     {
-        Failure failure = new Failure("ERR", "Error", Severity.Error, DateTime.UtcNow, []);
+        Failure failure = new("ERR", "Error", Severity.Error, DateTime.UtcNow, []);
         IEither<Unit> either = failure;
 
         switch (either)
@@ -398,5 +400,22 @@ public class IEitherCoreTest
                 Assert.Fail("Expected Failure");
                 break;
         }
+    }
+
+    [Fact(DisplayName = "Failure supports specific failures with inheritance")]
+    public void FailureHierarchy()
+    {
+        ValidationError failure = new();
+        IEither<bool> either = failure;
+
+
+        bool result = either switch
+        {
+            Ok<bool> => false,
+            ValidationError => true,
+            Failure => false
+        };
+
+        Assert.True(result, "Expected ValidationError mapped value");
     }
 }

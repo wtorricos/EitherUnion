@@ -22,4 +22,5 @@ public record ValidationError(
         Level: Severity.Warning,
         Timestamp: DateTime.UtcNow,
         Details: Details ?? [],
-        TraceId: TraceId);
+        TraceId: TraceId,
+        StackTrace: Environment.StackTrace);

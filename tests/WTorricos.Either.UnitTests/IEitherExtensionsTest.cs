@@ -359,7 +359,7 @@ public class IEitherExtensionsTest
         IEither<int> either = new Ok<int>(1);
         Func<int, int>? map = null;
 
-        Assert.Throws<ArgumentNullException>(() => either.Map(map!));
+        _ = Assert.Throws<ArgumentNullException>(() => either.Map(map!));
     }
 
     [Fact(DisplayName = "Filter throws for null predicate")]
@@ -369,7 +369,7 @@ public class IEitherExtensionsTest
         Failure filterFailure = new("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
         Func<int, bool>? predicate = null;
 
-        Assert.Throws<ArgumentNullException>(() => either.Filter(predicate!, filterFailure));
+        _ = Assert.Throws<ArgumentNullException>(() => either.Filter(predicate!, filterFailure));
     }
 
     [Fact(DisplayName = "Void converts Ok to Unit")]

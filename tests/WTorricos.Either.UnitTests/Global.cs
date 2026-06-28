@@ -1,7 +1,5 @@
-﻿global using Xunit;
-global using System.Globalization;
 global using System.Diagnostics.CodeAnalysis;
-global using WTorricos.Either;
+global using Xunit;
 
 // test projects are not considered for code coverage
 [assembly: ExcludeFromCodeCoverage]

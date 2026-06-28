@@ -145,7 +145,7 @@ public static class IEitherExtensions
         return either switch
         {
             Ok<T> ok when predicate(ok.Value) => ok,
-            Ok<T> _ => filterFailure,
+            Ok<T> => filterFailure,
             Failure failure => failure
         };
     }
@@ -176,7 +176,7 @@ public static class IEitherExtensions
     /// </summary>
     public static IEither<Unit> Void<T>(this IEither<T> either) => either switch
     {
-        Ok<T> _ => new Ok<Unit>(Unit.Instance),
+        Ok<T> => new Ok<Unit>(Unit.Instance),
         Failure failure => failure
     };
 }

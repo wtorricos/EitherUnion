@@ -31,3 +31,10 @@
 - Tests use xUnit and FluentAssertions, with `Fact(DisplayName = "...")` and pattern matching to assert result shapes.
 - `WTorricos.Either.Build\Directory.Build.props` and `.targets` intentionally block parent MSBuild imports; keep build-project changes local to that folder.
 - Update `CHANGELOG.md` when changes are appropriate for release notes (for example, user-visible behavior, API, package, or documentation-impacting updates).
+
+## Required validations before task completion
+
+Always run and confirm these checks pass before considering a task done:
+
+1. Project builds and Coverage succeeds: `./build.cmd TestCoverage`
+2. `.editorconfig` guidelines pass: `dotnet format WTorricos.Either.slnx --verify-no-changes`

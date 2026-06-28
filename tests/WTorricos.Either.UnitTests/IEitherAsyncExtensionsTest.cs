@@ -163,7 +163,7 @@ public class IEitherAsyncExtensionsTest
         CancellationTokenSource cts = new();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await either.MapAsync(value => ValueTask.FromResult(value * 2), cts.Token));
     }
 
@@ -174,7 +174,7 @@ public class IEitherAsyncExtensionsTest
         CancellationTokenSource cts = new();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await either.FlatMapAsync(value => ValueTask.FromResult<IEither<int>>(new Ok<int>(value + 1)), cts.Token));
     }
 
@@ -185,7 +185,7 @@ public class IEitherAsyncExtensionsTest
         CancellationTokenSource cts = new();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await either.MatchAsync(
                 value => ValueTask.FromResult($"ok:{value}"),
                 failure => ValueTask.FromResult($"error:{failure.ErrorCode}"),
@@ -199,7 +199,7 @@ public class IEitherAsyncExtensionsTest
         CancellationTokenSource cts = new();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await either.ActionAsync(value => ValueTask.CompletedTask, cancellationToken: cts.Token));
     }
 
@@ -209,7 +209,7 @@ public class IEitherAsyncExtensionsTest
         IEither<int> either = new Ok<int>(5);
         Func<int, ValueTask<int>>? map = null;
 
-        await Assert.ThrowsAsync<ArgumentNullException>(
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(
             async () => await either.MapAsync(map!));
     }
 
@@ -219,7 +219,7 @@ public class IEitherAsyncExtensionsTest
         IEither<int> either = new Ok<int>(5);
         Func<Failure, ValueTask<string>>? onFailure = null;
 
-        await Assert.ThrowsAsync<ArgumentNullException>(
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(
             async () => await either.MatchAsync(
                 value => ValueTask.FromResult($"ok:{value}"),
                 onFailure!));
