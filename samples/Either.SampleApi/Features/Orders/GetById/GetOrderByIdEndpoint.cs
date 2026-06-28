@@ -40,14 +40,13 @@ public static class GetOrderByIdEndpoint
                 ]
             });
 
-        return result.Match(
-            onSuccess: existingOrder => Results.Ok(
-                new GetOrderByIdResponse(
-                    existingOrder.Id,
-                    existingOrder.CustomerName,
-                    existingOrder.Amount,
-                    existingOrder.Currency,
-                    existingOrder.CreatedUtc)),
-            onFailure: failure => failure.ToProblemResult());
+        return result
+            .Map(existingOrder => new GetOrderByIdResponse(
+                existingOrder.Id,
+                existingOrder.CustomerName,
+                existingOrder.Amount,
+                existingOrder.Currency,
+                existingOrder.CreatedUtc))
+            .ToOkResult();
     }
 }

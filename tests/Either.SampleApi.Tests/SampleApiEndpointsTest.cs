@@ -172,6 +172,21 @@ public sealed class SampleApiEndpointsTest
         Assert.Equal("VALIDATION_REFUND_AMOUNT_EXCEEDS_ORDER", problem.RootElement.GetProperty("errorCode").GetString());
     }
 
+    [Fact(DisplayName = "POST /payments/refund returns ProblemDetails when order is missing")]
+    public async Task RefundReturnsProblemDetailsWhenOrderIsMissing()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        RefundPaymentRequest refundPayload = new(Guid.NewGuid(), 10.00m, "Partial reimbursement");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund", refundPayload);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("ORDER_NOT_FOUND", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("Cannot refund an order that does not exist.", problem.RootElement.GetProperty("detail").GetString());
+    }
+
     [Fact(DisplayName = "POST /payments/refund returns ProblemDetails when order id is empty")]
     public async Task RefundReturnsProblemDetailsWhenOrderIdIsEmpty()
     {

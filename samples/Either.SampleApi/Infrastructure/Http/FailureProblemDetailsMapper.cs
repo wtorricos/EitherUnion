@@ -1,3 +1,4 @@
+using System.Globalization;
 using WTorricos.Either;
 
 namespace Either.SampleApi.Infrastructure.Http;
@@ -30,7 +31,9 @@ public static class FailureProblemDetailsMapper
     }
 
     private static int MapStatusCode(Failure failure) =>
-        failure.ErrorCode.StartsWith("VALIDATION_", StringComparison.OrdinalIgnoreCase)
+        int.TryParse(failure.ErrorCode, NumberStyles.Integer, CultureInfo.InvariantCulture, out int numericStatusCode) && numericStatusCode is >= StatusCodes.Status100Continue and <= 599
+            ? numericStatusCode
+            : failure.ErrorCode.StartsWith("VALIDATION_", StringComparison.OrdinalIgnoreCase)
             ? StatusCodes.Status400BadRequest
             : failure.ErrorCode.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase)
             ? StatusCodes.Status404NotFound

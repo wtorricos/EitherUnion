@@ -81,10 +81,6 @@ public class IEitherAsyncExtensionsTest
         Assert.Equal("ERR", observed);
     }
 
-
-
-
-
     [Fact(DisplayName = "ActionAsync handles Failure without onFailure")]
     public async Task ActionAsyncHandlesFailureWithoutOnFailure()
     {
@@ -100,8 +96,6 @@ public class IEitherAsyncExtensionsTest
 
         Assert.Equal(0, observed);
     }
-
-
 
     [Fact(DisplayName = "MapAsync returns Failure unchanged")]
     public async Task MapAsyncReturnsFailureUnchanged()
@@ -120,8 +114,6 @@ public class IEitherAsyncExtensionsTest
                 break;
         }
     }
-
-
 
     [Fact(DisplayName = "FlatMapAsync unwraps nested failure")]
     public async Task FlatMapAsyncUnwrapsNestedFailure()
@@ -153,8 +145,6 @@ public class IEitherAsyncExtensionsTest
 
         Assert.Equal("error:ERR", result);
     }
-
-
 
     [Fact(DisplayName = "MapAsync respects cancellation token")]
     public async Task MapAsyncRespectsCancellationToken()

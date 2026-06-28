@@ -41,9 +41,7 @@ public static class RefundPaymentEndpoint
                 from refund in result
                 select new RefundPaymentResponse(refund.Id, refund.OrderId, refund.Amount, refund.Reason, refund.CreatedUtc);
 
-            return responseEither.Match(
-                onSuccess: response => Results.Ok(response),
-                onFailure: failure => failure.ToProblemResult());
+            return responseEither.ToOkResult();
         }
         catch (OperationCanceledException)
         {

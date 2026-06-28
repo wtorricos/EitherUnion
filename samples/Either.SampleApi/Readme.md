@@ -11,15 +11,15 @@
 
 ## Either usage by endpoint
 
-- `POST /orders`: `FlatMap` + `FlatMapAsync`, final `switch`
-- `GET /orders/{id}`: `FromNullable` + `MapFailure`, final `Match`
-- `POST /payments/refund`: `LINQ Syntax` + `MapAsync` with cancellation-aware flow
+- `POST /orders`: `FlatMap` + `FlatMapAsync` + `ToCreatedResult`
+- `GET /orders/{id}`: `FromNullable` + `MapFailure` + `ToOkResult`
+- `POST /payments/refund`: `LINQ Syntax` + `MapAsync` + `ToOkResult` with cancellation-aware flow
 
 ## Failure mapping
 
 All `Failure` values are translated to RFC7807 `ProblemDetails` by `Infrastructure/Http/FailureProblemDetailsMapper.cs`.
 
-- Code-driven mapping: `VALIDATION_*` -> `400`, `*NOT_FOUND*` -> `404`, `CONFLICT_*` -> `409`
+- Code-driven mapping: numeric error codes are used directly, then `VALIDATION_*` -> `400`, `*NOT_FOUND*` -> `404`, `CONFLICT_*` -> `409`
 - Severity fallback mapping: `Info/Warning` -> `400`, `Error/Critical` -> `500`
 
 ## Cancellation behavior

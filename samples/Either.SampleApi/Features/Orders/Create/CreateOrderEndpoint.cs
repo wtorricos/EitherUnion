@@ -29,13 +29,9 @@ public static class CreateOrderEndpoint
             validRequest => CreateOrderAsync(validRequest, dbContext, cancellationToken),
             cancellationToken);
 
-        return result switch
-        {
-            Ok<OrderEntity> order => Results.Created(
-                $"/orders/{order.Value.Id:D}",
-                new CreateOrderResponse(order.Value.Id, order.Value.CustomerName, order.Value.Amount, order.Value.Currency, order.Value.CreatedUtc)),
-            Failure failure => failure.ToProblemResult()
-        };
+        return result
+            .Map(order => new CreateOrderResponse(order.Id, order.CustomerName, order.Amount, order.Currency, order.CreatedUtc))
+            .ToCreatedResult(response => $"/orders/{response.Id:D}");
     }
 
     private static IEither<CreateOrderRequest> Validate(CreateOrderRequest request) =>
