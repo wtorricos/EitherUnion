@@ -7,6 +7,7 @@
 - Run a single test class or method: `dotnet test tests\WTorricos.Either.UnitTests\WTorricos.Either.UnitTests.csproj --filter FullyQualifiedName~WTorricos.Either.UnitTests.IEitherCoreTest`
 - Run the Nuke pipeline used by CI: `./build.cmd CiBuildAndTest`
 - Generate coverage locally: `./build.cmd TestCoverage`
+- Bump release version and insert changelog section: `./build.cmd BumpReleaseVersion`
 
 ## Architecture
 
@@ -30,7 +31,8 @@
 - Keep async paths aligned with the sync overloads; the public API intentionally mirrors both sync and `ValueTask` forms.
 - Tests use xUnit and FluentAssertions, with `Fact(DisplayName = "...")` and pattern matching to assert result shapes.
 - `WTorricos.Either.Build\Directory.Build.props` and `.targets` intentionally block parent MSBuild imports; keep build-project changes local to that folder.
-- Update `CHANGELOG.md` when changes are appropriate for release notes (for example, user-visible behavior, API, package, or documentation-impacting updates).
+- If `src\WTorricos.Either\WTorricos.Either.csproj` changes, increase the release version.
+- Add or update `CHANGELOG.md` entries only when that release version increase happens.
 
 ## Required validations before task completion
 

@@ -40,9 +40,8 @@ Note: `chmod +x build.cmd` needs to be manually added before running nuke when u
     {
         nameof(CiBuildAndTest)
     })]
-sealed class Build : NukeBuild
+sealed partial class Build : NukeBuild
 {
-
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
@@ -134,5 +133,5 @@ sealed class Build : NukeBuild
         .Executes(() => DotNetTasks.DotNetBuild(
             _ => _.SetConfiguration(Configuration.Release)));
 
-    public static int Main() => Execute<Build>(x => x.Compile);
+    public static int Main() => Execute<Build>(x => x.Compile, x => x.BumpReleaseVersion);
 }

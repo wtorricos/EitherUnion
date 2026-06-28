@@ -24,6 +24,7 @@
     "ExecutableTarget": {
       "type": "string",
       "enum": [
+        "BumpReleaseVersion",
         "CiBuildAndTest",
         "CleanGenerated",
         "Compile",
@@ -103,6 +104,10 @@
   "allOf": [
     {
       "properties": {
+        "changelogDate": {
+          "type": "string",
+          "description": "Date for CHANGELOG entry in yyyy-MM-dd format. Defaults to today"
+        },
         "configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)",
@@ -115,6 +120,10 @@
           "type": "number",
           "description": "Coverage test threshold, defaults to 100%",
           "format": "double"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Emit preview package version (x.y.z-preview.1) instead of stable (x.y.z)"
         },
         "Solution": {
           "type": "string",
