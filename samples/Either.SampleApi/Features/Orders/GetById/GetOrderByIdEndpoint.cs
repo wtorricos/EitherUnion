@@ -22,15 +22,8 @@ public static class GetOrderByIdEndpoint
             .AsNoTracking()
             .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
 
-        Failure missingOrderFailure = new(
-            ErrorCode: "ORDER_NOT_FOUND",
-            Message: "The requested order does not exist.",
-            Level: Severity.Warning,
-            Timestamp: DateTime.UtcNow,
-            Details: [new Detail("ORDER_ID", id.ToString("D"))]);
-
         IEither<OrderEntity> result = IEitherExtensions
-            .FromNullable(order, missingOrderFailure)
+            .FromNullable(order, GetMissingOrderFailure(id))
             .MapFailure(failure => failure with
             {
                 Details =
@@ -49,4 +42,12 @@ public static class GetOrderByIdEndpoint
                 existingOrder.CreatedUtc))
             .ToOkResult();
     }
+
+    static Failure GetMissingOrderFailure(Guid id) =>
+        new(
+            ErrorCode: "ORDER_NOT_FOUND",
+            Message: "The requested order does not exist.",
+            Level: Severity.Warning,
+            Timestamp: DateTime.UtcNow,
+            Details: [new Detail("ORDER_ID", id.ToString("D"))]);
 }
