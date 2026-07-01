@@ -11,21 +11,23 @@ public static class IEitherQueryExtensions
     public static IEither<TResult> SelectMany<T, TCollection, TResult>(
         this IEither<T> either,
         Func<T, IEither<TCollection>> collectionSelector,
-        Func<T, TCollection, TResult> resultSelector)
-    {
-        ArgumentNullException.ThrowIfNull(collectionSelector);
-        ArgumentNullException.ThrowIfNull(resultSelector);
-
-        return either.FlatMap(value =>
-            collectionSelector(value).Map(collection => resultSelector(value, collection)));
-    }
+        Func<T, TCollection, TResult> resultSelector) =>
+        collectionSelector is null
+            ? Failure.NullFailure(nameof(collectionSelector))
+            : resultSelector is null
+            ? Failure.NullFailure(nameof(resultSelector))
+            : either.FlatMap(value =>
+                collectionSelector(value).Map(collection => resultSelector(value, collection)));
 
     public static IEither<T> Where<T>(
         this IEither<T> either,
         Func<T, bool> predicate,
         Failure? failure = null)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        if (predicate is null)
+        {
+            return Failure.NullFailure(nameof(predicate));
+        }
 
         Failure predicateFailure = failure ?? new Failure(
             ErrorCode: "PREDICATE_FAILED",

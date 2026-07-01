@@ -353,23 +353,58 @@ public class IEitherExtensionsTest
         Assert.Equal(either, result);
     }
 
-    [Fact(DisplayName = "Map throws for null map function")]
-    public void MapThrowsForNullMapFunction()
+    [Fact(DisplayName = "Map returns null failure for null map function")]
+    public void MapReturnsNullFailureForNullMapFunction()
     {
         IEither<int> either = new Ok<int>(1);
         Func<int, int>? map = null;
 
-        _ = Assert.Throws<ArgumentNullException>(() => either.Map(map!));
+        IEither<int> result = either.Map(map!);
+
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'map' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
     }
 
-    [Fact(DisplayName = "Filter throws for null predicate")]
-    public void FilterThrowsForNullPredicate()
+    [Fact(DisplayName = "Filter returns null failure for null predicate")]
+    public void FilterReturnsNullFailureForNullPredicate()
     {
         IEither<int> either = new Ok<int>(1);
         Failure filterFailure = new("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
         Func<int, bool>? predicate = null;
 
-        _ = Assert.Throws<ArgumentNullException>(() => either.Filter(predicate!, filterFailure));
+        IEither<int> result = either.Filter(predicate!, filterFailure);
+
+        AssertNullFailure(result, "predicate");
+    }
+
+    [Fact(DisplayName = "Sync extension null inputs return null failures")]
+    public void SyncExtensionNullInputsReturnNullFailures()
+    {
+        IEither<int> either = new Ok<int>(1);
+        Failure filterFailure = new("ERR", "Boom", Severity.Error, DateTime.UtcNow, []);
+        Func<int, int>? map = null;
+        Func<int, IEither<int>>? bind = null;
+        Func<Failure, Failure>? mapError = null;
+        Action<int>? onSuccess = null;
+        Action<Failure>? onFailure = null;
+        Failure? nullFailure = null;
+
+        AssertNullFailure(either.Map(map!), "map");
+        AssertNullFailure(either.FlatMap(bind!), "bind");
+        AssertNullFailure(either.MapFailure(mapError!), "mapError");
+        AssertNullFailure(either.Tap(onSuccess!), "onSuccess");
+        AssertNullFailure(either.OnFailure(onFailure!), "onFailure");
+        AssertNullFailure(either.Filter(value => value > 0, nullFailure!), "filterFailure");
+        AssertNullFailure(IEitherExtensions.FromNullable("ok", nullFailure!), "whenNull");
+        AssertNullFailure(IEitherExtensions.FromNullable<int>(1, nullFailure!), "whenNull");
     }
 
     [Fact(DisplayName = "Void converts Ok to Unit")]
@@ -438,6 +473,20 @@ public class IEitherExtensionsTest
         {
             case Failure failure:
                 Assert.Equal("ERR", failure.ErrorCode);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
+    }
+
+    private static void AssertNullFailure<T>(IEither<T> result, string parameterName)
+    {
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal($"Required parameter '{parameterName}' was null.", failure.Message);
                 break;
             default:
                 Assert.Fail("Expected Failure");

@@ -2,13 +2,17 @@ namespace WTorricos.Either;
 
 public static class IEitherAsyncExtensions
 {
-    private static async Task<IEither<T>> AwaitEitherAsync<T>(
+    private static Task<IEither<T>> AwaitEitherAsync<T>(
         Task<IEither<T>> eitherTask,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(eitherTask);
+        if (eitherTask is null)
+        {
+            return Task.FromResult<IEither<T>>(Failure.NullFailure(nameof(eitherTask)));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
-        return await eitherTask.ConfigureAwait(false);
+        return eitherTask;
     }
 
     public static async Task<IEither<TOut>> MapAsync<TIn, TOut>(
@@ -16,7 +20,11 @@ public static class IEitherAsyncExtensions
         Func<TIn, Task<TOut>> map,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(map);
+        if (map is null)
+        {
+            return Failure.NullFailure(nameof(map));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -31,7 +39,11 @@ public static class IEitherAsyncExtensions
         Func<TIn, Task<TOut>> map,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(map);
+        if (map is null)
+        {
+            return Failure.NullFailure(nameof(map));
+        }
+
         IEither<TIn> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.MapAsync(map, cancellationToken).ConfigureAwait(false);
     }
@@ -39,18 +51,21 @@ public static class IEitherAsyncExtensions
     public static Task<IEither<TOut>> MapAsync<TIn, TOut>(
         this Task<IEither<TIn>> eitherTask,
         Func<TIn, TOut> map,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-        return eitherTask.MapAsync(value => Task.FromResult(map(value)), cancellationToken);
-    }
+        CancellationToken cancellationToken = default) =>
+        map is null
+            ? Task.FromResult<IEither<TOut>>(Failure.NullFailure(nameof(map)))
+            : eitherTask.MapAsync(value => Task.FromResult(map(value)), cancellationToken);
 
     public static async ValueTask<IEither<TOut>> MapAsync<TIn, TOut>(
         this IEither<TIn> either,
         Func<TIn, ValueTask<TOut>> map,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(map);
+        if (map is null)
+        {
+            return Failure.NullFailure(nameof(map));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -65,7 +80,11 @@ public static class IEitherAsyncExtensions
         Func<TIn, Task<IEither<TOut>>> bind,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(bind);
+        if (bind is null)
+        {
+            return Failure.NullFailure(nameof(bind));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -80,7 +99,11 @@ public static class IEitherAsyncExtensions
         Func<TIn, Task<IEither<TOut>>> bind,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(bind);
+        if (bind is null)
+        {
+            return Failure.NullFailure(nameof(bind));
+        }
+
         IEither<TIn> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.FlatMapAsync(bind, cancellationToken).ConfigureAwait(false);
     }
@@ -90,7 +113,11 @@ public static class IEitherAsyncExtensions
         Func<TIn, ValueTask<IEither<TOut>>> bind,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(bind);
+        if (bind is null)
+        {
+            return Failure.NullFailure(nameof(bind));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -262,7 +289,11 @@ public static class IEitherAsyncExtensions
         Func<Failure, Task<Failure>> mapError,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(mapError);
+        if (mapError is null)
+        {
+            return Failure.NullFailure(nameof(mapError));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -277,7 +308,11 @@ public static class IEitherAsyncExtensions
         Func<Failure, Task<Failure>> mapError,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(mapError);
+        if (mapError is null)
+        {
+            return Failure.NullFailure(nameof(mapError));
+        }
+
         IEither<T> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.MapFailureAsync(mapError, cancellationToken).ConfigureAwait(false);
     }
@@ -338,7 +373,11 @@ public static class IEitherAsyncExtensions
         Func<T, Task> onSuccess,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
+        if (onSuccess is null)
+        {
+            return Failure.NullFailure(nameof(onSuccess));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         if (either is Ok<T> ok)
@@ -352,24 +391,27 @@ public static class IEitherAsyncExtensions
     public static Task<IEither<T>> TapAsync<T>(
         this Task<IEither<T>> eitherTask,
         Action<T> onSuccess,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(onSuccess);
-        return eitherTask.TapAsync(
-            onSuccess: value =>
-            {
-                onSuccess(value);
-                return Task.CompletedTask;
-            },
-            cancellationToken: cancellationToken);
-    }
+        CancellationToken cancellationToken = default) =>
+        onSuccess is null
+            ? Task.FromResult<IEither<T>>(Failure.NullFailure(nameof(onSuccess)))
+            : eitherTask.TapAsync(
+                onSuccess: value =>
+                {
+                    onSuccess(value);
+                    return Task.CompletedTask;
+                },
+                cancellationToken: cancellationToken);
 
     public static async Task<IEither<T>> TapAsync<T>(
         this Task<IEither<T>> eitherTask,
         Func<T, Task> onSuccess,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
+        if (onSuccess is null)
+        {
+            return Failure.NullFailure(nameof(onSuccess));
+        }
+
         IEither<T> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.TapAsync(onSuccess, cancellationToken).ConfigureAwait(false);
     }
@@ -379,7 +421,11 @@ public static class IEitherAsyncExtensions
         Func<Failure, Task> onFailure,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(onFailure);
+        if (onFailure is null)
+        {
+            return Failure.NullFailure(nameof(onFailure));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         if (either is Failure failure)
@@ -393,24 +439,27 @@ public static class IEitherAsyncExtensions
     public static Task<IEither<T>> OnFailureAsync<T>(
         this Task<IEither<T>> eitherTask,
         Action<Failure> onFailure,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(onFailure);
-        return eitherTask.OnFailureAsync(
-            onFailure: failure =>
-            {
-                onFailure(failure);
-                return Task.CompletedTask;
-            },
-            cancellationToken: cancellationToken);
-    }
+        CancellationToken cancellationToken = default) =>
+        onFailure is null
+            ? Task.FromResult<IEither<T>>(Failure.NullFailure(nameof(onFailure)))
+            : eitherTask.OnFailureAsync(
+                onFailure: failure =>
+                {
+                    onFailure(failure);
+                    return Task.CompletedTask;
+                },
+                cancellationToken: cancellationToken);
 
     public static async Task<IEither<T>> OnFailureAsync<T>(
         this Task<IEither<T>> eitherTask,
         Func<Failure, Task> onFailure,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(onFailure);
+        if (onFailure is null)
+        {
+            return Failure.NullFailure(nameof(onFailure));
+        }
+
         IEither<T> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.OnFailureAsync(onFailure, cancellationToken).ConfigureAwait(false);
     }
@@ -421,8 +470,16 @@ public static class IEitherAsyncExtensions
         Failure filterFailure,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(filterFailure);
+        if (predicate is null)
+        {
+            return Failure.NullFailure(nameof(predicate));
+        }
+
+        if (filterFailure is null)
+        {
+            return Failure.NullFailure(nameof(filterFailure));
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return either switch
@@ -439,7 +496,16 @@ public static class IEitherAsyncExtensions
         Failure filterFailure,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        if (predicate is null)
+        {
+            return Failure.NullFailure(nameof(predicate));
+        }
+
+        if (filterFailure is null)
+        {
+            return Failure.NullFailure(nameof(filterFailure));
+        }
+
         IEither<T> either = await AwaitEitherAsync(eitherTask, cancellationToken).ConfigureAwait(false);
         return await either.FilterAsync(predicate, filterFailure, cancellationToken).ConfigureAwait(false);
     }
@@ -448,12 +514,11 @@ public static class IEitherAsyncExtensions
         this Task<IEither<T>> eitherTask,
         Func<T, bool> predicate,
         Failure filterFailure,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(predicate);
-        return eitherTask.FilterAsync(
-            predicate: value => Task.FromResult(predicate(value)),
-            filterFailure: filterFailure,
-            cancellationToken: cancellationToken);
-    }
+        CancellationToken cancellationToken = default) =>
+        predicate is null
+            ? Task.FromResult<IEither<T>>(Failure.NullFailure(nameof(predicate)))
+            : eitherTask.FilterAsync(
+                predicate: value => Task.FromResult(predicate(value)),
+                filterFailure: filterFailure,
+                cancellationToken: cancellationToken);
 }

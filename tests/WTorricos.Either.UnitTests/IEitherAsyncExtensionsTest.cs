@@ -193,14 +193,24 @@ public class IEitherAsyncExtensionsTest
             async () => await either.ActionAsync(value => ValueTask.CompletedTask, cancellationToken: cts.Token));
     }
 
-    [Fact(DisplayName = "MapAsync throws for null map function")]
-    public async Task MapAsyncThrowsForNullMapFunction()
+    [Fact(DisplayName = "MapAsync returns null failure for null map function")]
+    public async Task MapAsyncReturnsNullFailureForNullMapFunction()
     {
         IEither<int> either = new Ok<int>(5);
         Func<int, ValueTask<int>>? map = null;
 
-        _ = await Assert.ThrowsAsync<ArgumentNullException>(
-            async () => await either.MapAsync(map!));
+        IEither<int> result = await either.MapAsync(map!);
+
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'map' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
     }
 
     [Fact(DisplayName = "MatchAsync throws for null failure callback")]
@@ -666,12 +676,23 @@ public class IEitherAsyncExtensionsTest
         }
     }
 
-    [Fact(DisplayName = "Task-source async methods throw on null task")]
-    public async Task TaskSourceAsyncMethodsThrowOnNullTask()
+    [Fact(DisplayName = "Task-source async methods return null failure on null task")]
+    public async Task TaskSourceAsyncMethodsReturnNullFailureOnNullTask()
     {
         Task<IEither<int>>? eitherTask = null;
 
-        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => eitherTask!.MapAsync(value => Task.FromResult(value + 1)));
+        IEither<int> result = await eitherTask!.MapAsync(value => Task.FromResult(value + 1));
+
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'eitherTask' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
     }
 
     [Fact(DisplayName = "Task-source async methods respect cancellation token")]
@@ -1043,5 +1064,63 @@ public class IEitherAsyncExtensionsTest
 
         Assert.False(successExecuted);
         Assert.Equal("FILTER_FAIL", observedFailure);
+    }
+
+    [Fact(DisplayName = "Async IEither-returning methods return null failures for null inputs")]
+    public async Task AsyncEitherReturningMethodsReturnNullFailuresForNullInputs()
+    {
+        IEither<int> either = new Ok<int>(1);
+        Task<IEither<int>> eitherTask = Task.FromResult(either);
+        Task<IEither<int>>? nullEitherTask = null;
+        Failure filterFailure = new("FILTER_FAIL", "Invalid", Severity.Warning, DateTime.UtcNow, []);
+        Failure? nullFailure = null;
+        Func<int, Task<int>>? nullTaskMap = null;
+        Func<int, int>? nullSyncMap = null;
+        Func<int, ValueTask<int>>? nullValueTaskMap = null;
+        Func<int, Task<IEither<int>>>? nullTaskBind = null;
+        Func<int, ValueTask<IEither<int>>>? nullValueTaskBind = null;
+        Func<Failure, Task<Failure>>? nullMapError = null;
+        Func<int, Task>? nullTaskSuccess = null;
+        Action<int>? nullSuccessAction = null;
+        Func<Failure, Task>? nullTaskFailure = null;
+        Action<Failure>? nullFailureAction = null;
+        Func<int, Task<bool>>? nullTaskPredicate = null;
+        Func<int, bool>? nullPredicate = null;
+
+        AssertNullFailure(await nullEitherTask!.MapAsync(value => Task.FromResult(value + 1)), "eitherTask");
+        AssertNullFailure(await either.MapAsync(nullTaskMap!), "map");
+        AssertNullFailure(await eitherTask.MapAsync(nullTaskMap!), "map");
+        AssertNullFailure(await eitherTask.MapAsync(nullSyncMap!), "map");
+        AssertNullFailure(await either.MapAsync(nullValueTaskMap!), "map");
+        AssertNullFailure(await either.FlatMapAsync(nullTaskBind!), "bind");
+        AssertNullFailure(await eitherTask.FlatMapAsync(nullTaskBind!), "bind");
+        AssertNullFailure(await either.FlatMapAsync(nullValueTaskBind!), "bind");
+        AssertNullFailure(await either.MapFailureAsync(nullMapError!), "mapError");
+        AssertNullFailure(await eitherTask.MapFailureAsync(nullMapError!), "mapError");
+        AssertNullFailure(await either.TapAsync(nullTaskSuccess!), "onSuccess");
+        AssertNullFailure(await eitherTask.TapAsync(nullTaskSuccess!), "onSuccess");
+        AssertNullFailure(await eitherTask.TapAsync(nullSuccessAction!), "onSuccess");
+        AssertNullFailure(await either.OnFailureAsync(nullTaskFailure!), "onFailure");
+        AssertNullFailure(await eitherTask.OnFailureAsync(nullTaskFailure!), "onFailure");
+        AssertNullFailure(await eitherTask.OnFailureAsync(nullFailureAction!), "onFailure");
+        AssertNullFailure(await either.FilterAsync(nullTaskPredicate!, filterFailure), "predicate");
+        AssertNullFailure(await either.FilterAsync(value => Task.FromResult(value > 0), nullFailure!), "filterFailure");
+        AssertNullFailure(await eitherTask.FilterAsync(nullTaskPredicate!, filterFailure), "predicate");
+        AssertNullFailure(await eitherTask.FilterAsync(value => Task.FromResult(value > 0), nullFailure!), "filterFailure");
+        AssertNullFailure(await eitherTask.FilterAsync(nullPredicate!, filterFailure), "predicate");
+    }
+
+    private static void AssertNullFailure<T>(IEither<T> result, string parameterName)
+    {
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal($"Required parameter '{parameterName}' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
     }
 }

@@ -9,31 +9,27 @@ public static class IEitherExtensions
     /// Transforms the success value using the provided mapping function.
     /// If the Either is a Failure, it is returned unchanged.
     /// </summary>
-    public static IEither<TOut> Map<TIn, TOut>(this IEither<TIn> either, Func<TIn, TOut> map)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-
-        return either switch
-        {
-            Ok<TIn> ok => new Ok<TOut>(map(ok.Value)),
-            Failure failure => failure
-        };
-    }
+    public static IEither<TOut> Map<TIn, TOut>(this IEither<TIn> either, Func<TIn, TOut> map) =>
+        map is null
+            ? Failure.NullFailure(nameof(map))
+            : either switch
+            {
+                Ok<TIn> ok => new Ok<TOut>(map(ok.Value)),
+                Failure failure => failure
+            };
 
     /// <summary>
     /// Monadic bind operation. Chains Either-returning operations.
     /// If the Either is a Failure, it is returned unchanged.
     /// </summary>
-    public static IEither<TOut> FlatMap<TIn, TOut>(this IEither<TIn> either, Func<TIn, IEither<TOut>> bind)
-    {
-        ArgumentNullException.ThrowIfNull(bind);
-
-        return either switch
-        {
-            Ok<TIn> ok => bind(ok.Value),
-            Failure failure => failure
-        };
-    }
+    public static IEither<TOut> FlatMap<TIn, TOut>(this IEither<TIn> either, Func<TIn, IEither<TOut>> bind) =>
+        bind is null
+            ? Failure.NullFailure(nameof(bind))
+            : either switch
+            {
+                Ok<TIn> ok => bind(ok.Value),
+                Failure failure => failure
+            };
 
     /// <summary>
     /// Unwraps a nested Either{Either{T}} into a flat Either{T}.
@@ -48,16 +44,14 @@ public static class IEitherExtensions
     /// Transforms a failure using the provided error mapping function.
     /// If the Either is a success, it is returned unchanged.
     /// </summary>
-    public static IEither<T> MapFailure<T>(this IEither<T> either, Func<Failure, Failure> mapError)
-    {
-        ArgumentNullException.ThrowIfNull(mapError);
-
-        return either switch
-        {
-            Ok<T> ok => ok,
-            Failure failure => mapError(failure)
-        };
-    }
+    public static IEither<T> MapFailure<T>(this IEither<T> either, Func<Failure, Failure> mapError) =>
+        mapError is null
+            ? Failure.NullFailure(nameof(mapError))
+            : either switch
+            {
+                Ok<T> ok => ok,
+                Failure failure => mapError(failure)
+            };
 
     /// <summary>
     /// Extracts the success value or throws if the Either is a Failure.
@@ -108,7 +102,10 @@ public static class IEitherExtensions
     /// </summary>
     public static IEither<T> Tap<T>(this IEither<T> either, Action<T> onSuccess)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
+        if (onSuccess is null)
+        {
+            return Failure.NullFailure(nameof(onSuccess));
+        }
 
         if (either is Ok<T> ok)
         {
@@ -123,7 +120,10 @@ public static class IEitherExtensions
     /// </summary>
     public static IEither<T> OnFailure<T>(this IEither<T> either, Action<Failure> onFailure)
     {
-        ArgumentNullException.ThrowIfNull(onFailure);
+        if (onFailure is null)
+        {
+            return Failure.NullFailure(nameof(onFailure));
+        }
 
         if (either is Failure failure)
         {
@@ -137,38 +137,31 @@ public static class IEitherExtensions
     /// Filters the success value using the provided predicate.
     /// If predicate is false, returns a Failure with the provided error.
     /// </summary>
-    public static IEither<T> Filter<T>(this IEither<T> either, Func<T, bool> predicate, Failure filterFailure)
-    {
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(filterFailure);
-
-        return either switch
-        {
-            Ok<T> ok when predicate(ok.Value) => ok,
-            Ok<T> => filterFailure,
-            Failure failure => failure
-        };
-    }
+    public static IEither<T> Filter<T>(this IEither<T> either, Func<T, bool> predicate, Failure filterFailure) =>
+        predicate is null
+            ? Failure.NullFailure(nameof(predicate))
+            : filterFailure is null
+                ? Failure.NullFailure(nameof(filterFailure))
+                : either switch
+                {
+                    Ok<T> ok when predicate(ok.Value) => ok,
+                    Ok<T> => filterFailure,
+                    Failure failure => failure
+                };
 
     /// <summary>
     /// Converts a nullable value into an Either{T}.
     /// Returns Failure if value is null.
     /// </summary>
-    public static IEither<T> FromNullable<T>(T? value, Failure whenNull) where T : class
-    {
-        ArgumentNullException.ThrowIfNull(whenNull);
-        return value is not null ? new Ok<T>(value) : whenNull;
-    }
+    public static IEither<T> FromNullable<T>(T? value, Failure whenNull) where T : class =>
+        whenNull is null ? Failure.NullFailure(nameof(whenNull)) : value is not null ? new Ok<T>(value) : whenNull;
 
     /// <summary>
     /// Converts a nullable value type into an Either{T}.
     /// Returns Failure if value is null.
     /// </summary>
-    public static IEither<T> FromNullable<T>(T? value, Failure whenNull) where T : struct
-    {
-        ArgumentNullException.ThrowIfNull(whenNull);
-        return value.HasValue ? new Ok<T>(value.Value) : whenNull;
-    }
+    public static IEither<T> FromNullable<T>(T? value, Failure whenNull) where T : struct =>
+        whenNull is null ? Failure.NullFailure(nameof(whenNull)) : value.HasValue ? new Ok<T>(value.Value) : whenNull;
 
     /// <summary>
     /// Converts an Either{T} into an Either{TOut}, discarding the success value.

@@ -20,6 +20,14 @@ public record Failure(
     Failure? InnerError = null,
     IReadOnlyDictionary<string, object>? Metadata = null)
 {
+    public static Failure NullFailure(string parameterName) =>
+        new(
+            ErrorCode: "NULL_FAILURE",
+            Message: $"Required parameter '{parameterName}' was null.",
+            Level: Severity.Error,
+            Timestamp: DateTime.UtcNow,
+            Details: [new Detail("NULL_PARAMETER", parameterName)]);
+
     public Failure(
         string errorCode,
         string message,

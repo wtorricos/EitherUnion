@@ -247,12 +247,56 @@ public class IEitherQueryTest
         }
     }
 
-    [Fact(DisplayName = "Where throws when predicate is null")]
-    public void WhereThrowsWhenPredicateIsNull()
+    [Fact(DisplayName = "Where returns null failure when predicate is null")]
+    public void WhereReturnsNullFailureWhenPredicateIsNull()
     {
         IEither<int> either = new Ok<int>(15);
         Func<int, bool>? predicate = null;
 
-        _ = Assert.Throws<ArgumentNullException>(() => either.Where(predicate!));
+        IEither<int> result = either.Where(predicate!);
+
+        switch (result)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'predicate' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
+    }
+
+    [Fact(DisplayName = "SelectMany returns null failure when callbacks are null")]
+    public void SelectManyReturnsNullFailureWhenCallbacksAreNull()
+    {
+        IEither<int> either = new Ok<int>(1);
+        Func<int, IEither<int>>? collectionSelector = null;
+        Func<int, int, int>? resultSelector = null;
+
+        IEither<int> collectionSelectorResult = either.SelectMany(collectionSelector!, (x, y) => x + y);
+        IEither<int> resultSelectorResult = either.SelectMany(x => new Ok<int>(x), resultSelector!);
+
+        switch (collectionSelectorResult)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'collectionSelector' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
+
+        switch (resultSelectorResult)
+        {
+            case Failure failure:
+                Assert.Equal("NULL_FAILURE", failure.ErrorCode);
+                Assert.Equal("Required parameter 'resultSelector' was null.", failure.Message);
+                break;
+            default:
+                Assert.Fail("Expected Failure");
+                break;
+        }
     }
 }
