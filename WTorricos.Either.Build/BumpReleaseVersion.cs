@@ -31,6 +31,7 @@ sealed partial class Build : NukeBuild
     [Parameter(description: "Date for CHANGELOG entry in yyyy-MM-dd format. Defaults to today.")]
     readonly string changelogDate;
 
+    // dotnet nuke BumpReleaseVersion --preview
     Target BumpReleaseVersion => _ => _
         .Executes(() =>
         {

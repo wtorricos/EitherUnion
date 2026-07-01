@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- v1 targets net11.0 for union types and modern async patterns -->
@@ -28,12 +28,12 @@
     <!-- TODO: Add <PackageIcon>icon.png</PackageIcon>-->
 
     <!-- Properties that need to be updated on every release -->
-    <Version>1.0.0-preview.1</Version>
-    <PackageReleaseNotes>Version 1: Union types, enhanced error context, modern async patterns (ValueTask, CancellationToken)</PackageReleaseNotes>
+    <Version>1.0.1-preview.1</Version>
+    <PackageReleaseNotes>Release 1.0.1-preview.1. See CHANGELOG.md for details.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\Readme.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\Readme.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

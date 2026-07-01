@@ -133,5 +133,5 @@ sealed partial class Build : NukeBuild
         .Executes(() => DotNetTasks.DotNetBuild(
             _ => _.SetConfiguration(Configuration.Release)));
 
-    public static int Main() => Execute<Build>(x => x.Compile, x => x.BumpReleaseVersion);
+    public static int Main() => Execute<Build>(x => x.CiBuildAndTest, x => x.BumpReleaseVersion);
 }
