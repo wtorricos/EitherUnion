@@ -10,7 +10,8 @@ Its goal is to provide a practical union for success-or-failure workflows in mod
 - Rich failure context: `ErrorCode`, `Severity`, `TraceId`, `StackTrace`, `InnerError`, `Metadata`
 - Fluent helpers: `Map`, `FlatMap`, `Flatten`, `MapFailure`, `Match`, `Inspect`, `Tap`, `OnFailure`, `Filter`, `Void`
 - Result extraction helpers: `GetValueOrThrow`
-- Async helpers: `MapAsync`, `FlatMapAsync`, `MatchAsync`, `ActionAsync`
+- Async helpers (Task and ValueTask): `MapAsync`, `FlatMapAsync`, `MatchAsync`, `ActionAsync`
+- Extended async chaining helpers: `FlattenAsync`, `MapFailureAsync`, `InspectAsync`, `TapAsync`, `OnFailureAsync`, `FilterAsync`
 - LINQ query syntax support through `Select`, `SelectMany`, and `Where`
 
 Install it from [NuGet](https://www.nuget.org/packages/WTorricos.EitherUnion).
@@ -90,11 +91,12 @@ public record NotFoundFailure(string Resource, string? TraceId = null)
 
 ## Sample API (vertical slices)
 
-`samples/Either.SampleApi` demonstrates a medium-complexity minimal API with three endpoints and practical `IEither<T>` flows:
+`samples/Either.SampleApi` demonstrates a medium-complexity minimal API with practical `IEither<T>` flows:
 
 - `POST /orders` uses `FlatMap` + `FlatMapAsync`
 - `GET /orders/{id}` uses `FromNullable` + `MapFailure`
 - `POST /payments/refund` uses `Filter` + `MapAsync` and returns HTTP `499` on cancellation
+- `POST /payments/refund/v2` shows the Task-based async chaining flow and returns HTTP `499` on cancellation
 
 ## Contributing
 

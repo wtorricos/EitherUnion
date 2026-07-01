@@ -4,7 +4,7 @@
 
 ## Scope and boundaries
 
-- Exactly 3 endpoints: `POST /orders`, `GET /orders/{id}`, `POST /payments/refund`
+- Exactly 4 endpoints: `POST /orders`, `GET /orders/{id}`, `POST /payments/refund`, `POST /payments/refund/v2`
 - Architecture: vertical slices under `Features/*` with shared `Infrastructure/Persistence/AppDbContext`
 - Persistence: EF Core InMemory only (illustrative)
 - Explicit non-goals: authentication, pagination/search, retries/polly, background jobs, and production hardening
@@ -14,6 +14,7 @@
 - `POST /orders`: `FlatMap` + `FlatMapAsync` + `ToCreatedResult`
 - `GET /orders/{id}`: `FromNullable` + `MapFailure` + `ToOkResult`
 - `POST /payments/refund`: `LINQ Syntax` + `MapAsync` + `ToOkResult` with cancellation-aware flow
+- `POST /payments/refund/v2`: Task-based `FlatMapAsync` + `MapAsync` + `ToOkResult` with cancellation-aware flow
 
 ## Failure mapping
 
@@ -24,7 +25,7 @@ All `Failure` values are translated to RFC7807 `ProblemDetails` by `Infrastructu
 
 ## Cancellation behavior
 
-`POST /payments/refund` catches `OperationCanceledException` and returns HTTP `499` intentionally to make cancellation explicit in this sample.
+`POST /payments/refund` and `POST /payments/refund/v2` catch `OperationCanceledException` and return HTTP `499` intentionally to make cancellation explicit in this sample.
 
 ## Running the sample
 

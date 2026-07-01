@@ -232,6 +232,107 @@ public sealed class SampleApiEndpointsTest
         Assert.Equal("Refund amount must be greater than zero.", problem.RootElement.GetProperty("detail").GetString());
     }
 
+    [Fact(DisplayName = "POST /payments/refund/v2 returns OK for valid refund")]
+    public async Task RefundV2ReturnsOkForValidPayload()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        CreateOrderRequest createPayload = new("Dorothy Vaughan", 99.00m, "USD");
+        HttpResponseMessage createResponse = await client.PostAsJsonAsync("/orders", createPayload);
+        CreateOrderResponse? createdOrder = await createResponse.Content.ReadFromJsonAsync<CreateOrderResponse>();
+
+        Assert.NotNull(createdOrder);
+        RefundPaymentRequest refundPayload = new(createdOrder.Id, 25.00m, "Partial reimbursement");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        RefundPaymentResponse? content = await response.Content.ReadFromJsonAsync<RefundPaymentResponse>();
+        Assert.NotNull(content);
+        Assert.Equal(createdOrder.Id, content.OrderId);
+        Assert.Equal(25.00m, content.Amount);
+    }
+
+    [Fact(DisplayName = "POST /payments/refund/v2 returns ProblemDetails when amount exceeds order")]
+    public async Task RefundV2ReturnsProblemDetailsWhenAmountExceedsOrder()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        CreateOrderRequest createPayload = new("Mary Jackson", 50.00m, "USD");
+        HttpResponseMessage createResponse = await client.PostAsJsonAsync("/orders", createPayload);
+        CreateOrderResponse? createdOrder = await createResponse.Content.ReadFromJsonAsync<CreateOrderResponse>();
+
+        Assert.NotNull(createdOrder);
+        RefundPaymentRequest refundPayload = new(createdOrder.Id, 75.00m, "Excessive refund request");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("VALIDATION_REFUND_AMOUNT_EXCEEDS_ORDER", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("VALIDATION_REFUND_AMOUNT_EXCEEDS_ORDER", problem.RootElement.GetProperty("errorCode").GetString());
+    }
+
+    [Fact(DisplayName = "POST /payments/refund/v2 returns ProblemDetails when order is missing")]
+    public async Task RefundV2ReturnsProblemDetailsWhenOrderIsMissing()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        RefundPaymentRequest refundPayload = new(Guid.NewGuid(), 10.00m, "Partial reimbursement");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("ORDER_NOT_FOUND", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("Cannot refund an order that does not exist.", problem.RootElement.GetProperty("detail").GetString());
+    }
+
+    [Fact(DisplayName = "POST /payments/refund/v2 returns ProblemDetails when order id is empty")]
+    public async Task RefundV2ReturnsProblemDetailsWhenOrderIdIsEmpty()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        RefundPaymentRequest refundPayload = new(Guid.Empty, 10.00m, "Partial reimbursement");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("VALIDATION_ORDER_ID", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("OrderId is required.", problem.RootElement.GetProperty("detail").GetString());
+    }
+
+    [Fact(DisplayName = "POST /payments/refund/v2 returns ProblemDetails when reason is missing")]
+    public async Task RefundV2ReturnsProblemDetailsWhenReasonIsMissing()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        RefundPaymentRequest refundPayload = new(Guid.NewGuid(), 10.00m, string.Empty);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("VALIDATION_REASON", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("Refund reason is required.", problem.RootElement.GetProperty("detail").GetString());
+    }
+
+    [Fact(DisplayName = "POST /payments/refund/v2 returns ProblemDetails when amount is not positive")]
+    public async Task RefundV2ReturnsProblemDetailsWhenAmountIsNotPositive()
+    {
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        HttpClient client = factory.CreateClient();
+
+        RefundPaymentRequest refundPayload = new(Guid.NewGuid(), 0, "Partial reimbursement");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/payments/refund/v2", refundPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        JsonDocument problem = await ReadJsonAsync(response);
+        Assert.Equal("VALIDATION_REFUND_AMOUNT", problem.RootElement.GetProperty("title").GetString());
+        Assert.Equal("Refund amount must be greater than zero.", problem.RootElement.GetProperty("detail").GetString());
+    }
+
     private static WebApplicationFactory<Program> CreateFactory()
     {
         string databaseName = $"Either.SampleApi.Tests.{Guid.NewGuid():N}";

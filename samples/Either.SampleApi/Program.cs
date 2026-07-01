@@ -12,4 +12,5 @@ WebApplication app = builder.Build();
 app.MapCreateOrderEndpoints();
 app.MapGetOrderByIdEndpoints();
 app.MapRefundPaymentEndpoints();
+app.MapRefundPaymentV2Endpoints();
 app.Run();
