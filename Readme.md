@@ -37,34 +37,53 @@ Failure failure = new(
     Message: "User not found",
     Level: Severity.Warning,
     Timestamp: DateTime.UtcNow,
-    Details: [new Detail("USER_ID", "The requested user does not exist")]
-);
-
-Failure fromOffset = new(
-    ErrorCode: "UNAVAILABLE",
-    Message: "Service unavailable",
-    Level: Severity.Error,
-    Timestamp: DateTimeOffset.UtcNow,
-    Details: []
+    Details: [new Detail("USER_ID", "The requested user does not exist")],
+    StackTrace: Environment.StackTrace
 );
 
 IEither<int> result = failure;
 ```
 
 ## Composition
-
-```csharp
-IEither<string> email = GetUser(id)
-    .Map(user => user.Email)
-    .FlatMap(email => ValidateEmail(email));
-```
-
+Linq syntax support for IEither<T>
+This syntax intentionally doesn't support Task<IEither<T>>
 ```csharp
 IEither<int> total =
     from first in GetFirstValue()
     from second in GetSecondValue(first)
     where second > 0
     select first + second;
+```
+
+Fluent syntax that supports Async flows
+```csharp
+IEither<RefundPaymentResponse> responseEither = await Validate(request)
+    .FlatMap(ValidateAmount)
+    .FlatMapAsync(
+        validRequest => BuildRefundContextAsync(validRequest, dbContext, cancellationToken),
+        cancellationToken)
+    .MapAsync(
+        context => PersistRefundAsync(context, dbContext, cancellationToken),
+        cancellationToken)
+    .MapAsync(
+        refund => new RefundPaymentResponse(refund.Id, refund.OrderId, refund.Amount, refund.Reason, refund.CreatedUtc),
+        cancellationToken)
+    .InspectAsync(
+        onSuccess: ok => Console.WriteLine("Refund operation completed successfully {0}", ok),
+        onFailure: failure => Console.WriteLine("Refund failed {0}", failure),
+        cancellationToken: cancellationToken);;
+```
+
+ValueTask fluent syntax.
+Chaining support is intentionally not fully supported, as its a best practice to await ValueTasks.
+```csharp
+IEither<RefundContext> refundCcontextEither = await requestEither.FlatMapAsync(
+    validRequest => BuildRefundContextAsync(validRequest, dbContext, cancellationToken),
+    cancellationToken);
+
+IEither<RefundEntity> result = await refundCcontextEither.MapAsync(
+    context => PersistRefundAsync(context, dbContext, cancellationToken),
+    cancellationToken);
 ```
 
 ## Custom failures
