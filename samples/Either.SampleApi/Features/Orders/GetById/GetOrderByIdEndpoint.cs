@@ -16,6 +16,9 @@ public static class GetOrderByIdEndpoint
         return endpoints;
     }
 
+    /// <summary>
+    /// Sample of FromNullable, MapFailure and Map.
+    /// </summary>
     private static async Task<IResult> HandleAsync(Guid id, AppDbContext dbContext, CancellationToken cancellationToken)
     {
         OrderEntity? order = await dbContext.Orders

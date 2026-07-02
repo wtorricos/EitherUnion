@@ -17,6 +17,9 @@ public static class RefundPaymentEndpoint
         return endpoints;
     }
 
+    /// <summary>
+    /// Sample of LINQ syntax, FlapMapAsync and MapAsync.
+    /// </summary>
     private static async Task<IResult> HandleAsync(
         RefundPaymentRequest request,
         AppDbContext dbContext,

@@ -2,6 +2,9 @@ using WTorricos.Either;
 
 namespace Either.SampleApi.Infrastructure.Http;
 
+/// <summary>
+/// Sample helper to Map IEither<T> to IResult
+/// </summary>
 public static class EitherHttpResultExtensions
 {
     public static IResult ToOkResult<T>(this IEither<T> either) =>

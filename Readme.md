@@ -45,8 +45,9 @@ IEither<int> result = failure;
 ```
 
 ## Composition
-Linq syntax support for IEither<T>
-This syntax intentionally doesn't support Task<IEither<T>>
+LINQ syntax support for IEither<T>  
+This syntax intentionally excludes Tasks, and ValueTasks, since async chaining should be handled via await.
+
 ```csharp
 IEither<int> total =
     from first in GetFirstValue()
@@ -56,6 +57,7 @@ IEither<int> total =
 ```
 
 Fluent syntax that supports Async flows
+
 ```csharp
 IEither<RefundPaymentResponse> responseEither = await Validate(request)
     .FlatMap(ValidateAmount)
@@ -75,7 +77,8 @@ IEither<RefundPaymentResponse> responseEither = await Validate(request)
 ```
 
 ValueTask fluent syntax.
-Chaining support is intentionally not fully supported, as its a best practice to await ValueTasks.
+Chaining is intentionally limited because the recommended practice is to explicitly await ValueTask instances.
+
 ```csharp
 IEither<RefundContext> refundCcontextEither = await requestEither.FlatMapAsync(
     validRequest => BuildRefundContextAsync(validRequest, dbContext, cancellationToken),

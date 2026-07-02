@@ -17,6 +17,9 @@ public static class CreateOrderEndpoint
         return endpoints;
     }
 
+    /// <summary>
+    /// Sample of FlatMap, FlatMapAsync and Map
+    /// </summary>
     private static async Task<IResult> HandleAsync(
         CreateOrderRequest request,
         AppDbContext dbContext,

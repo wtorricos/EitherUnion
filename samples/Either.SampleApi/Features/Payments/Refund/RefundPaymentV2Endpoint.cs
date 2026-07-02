@@ -17,6 +17,10 @@ public static class RefundPaymentV2Endpoint
         return endpoints;
     }
 
+    /// <summary>
+    /// Sample of chaining multiple operations.
+    /// </summary>
+    /// <returns></returns>
     private static async Task<IResult> HandleV2Async(
         RefundPaymentRequest request,
         AppDbContext dbContext,
